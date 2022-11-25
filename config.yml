@@ -1,0 +1,8 @@
+yandex:
+  folder-id: b1gnf50itdkevdiab3it
+  api:
+    translate: https://translate.api.cloud.yandex.net/translate/v2/translate
+    detect: https://translate.api.cloud.yandex.net/translate/v2/detect
+    tokens: https://iam.api.cloud.yandex.net/iam/v1/tokens
+
+giphy: https://api.giphy.com/v1
