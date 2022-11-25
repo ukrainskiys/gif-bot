@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/ukrainskiys/gif-bot/internal/client/translation"
+	"github.com/ukrainskiys/gif-bot/internal/client/giphy"
 	"github.com/ukrainskiys/gif-bot/internal/config"
 	"log"
 )
@@ -13,18 +13,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	translator, err := translation.NewClient(conf.Yandex)
+	gif := giphy.NewClient(conf.Giphy)
+	list, err := gif.GetGifList(giphy.GIF, "бухать")
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 
-	phrase, err := translator.AutoTranslate("здарова пацаны")
-	if err != nil {
-		log.Fatal(err)
+	for _, g := range list {
+		fmt.Println(g)
 	}
-
-	fmt.Println(phrase)
-
-	translator.Close()
 
 }
