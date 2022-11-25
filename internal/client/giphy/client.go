@@ -2,6 +2,7 @@ package giphy
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,15 +13,21 @@ type Client struct {
 	token    string
 }
 
-func NewClient(endpoint string) *Client {
-	return &Client{
+func NewClient(endpoint string) (*Client, error) {
+	client := &Client{
 		endpoint: endpoint,
 		token:    os.Getenv("GIPHY_TOKEN"),
 	}
+
+	if err := client.check(); err != nil {
+		return nil, err
+	} else {
+		return client, nil
+	}
 }
 
-func (c *Client) GetGifList(typ GifType, phrase string) ([]Gif, error) {
-	get, err := http.Get(c.buildUrl(typ, phrase).String())
+func (c *Client) GetGifList(request SearchGifRequest) ([]Gif, error) {
+	get, err := http.Get(c.buildUrl(request.GifType, request.Phrase).String())
 	if err != nil {
 		return nil, err
 	}
@@ -41,4 +48,17 @@ func (c *Client) buildUrl(typ GifType, phrase string) *url.URL {
 	params.Add("q", phrase)
 	builder.RawQuery = params.Encode()
 	return builder
+}
+
+func (c *Client) check() error {
+	get, err := http.Get(c.buildUrl(GIF, "hello").String())
+	if err != nil {
+		return err
+	}
+
+	if get.StatusCode != 200 {
+		return errors.New("giphy client doesn't worked (check auth token)")
+	} else {
+		return nil
+	}
 }

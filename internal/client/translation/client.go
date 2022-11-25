@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ukrainskiys/gif-bot/internal/config"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -99,7 +98,6 @@ func (c *Client) startSchedulingUpdateAuthToken() {
 					ticker.Stop()
 					return
 				}
-				log.Println("Yandex Translate Api: set new Bearer token")
 			case <-c.close:
 				ticker.Stop()
 				return
@@ -114,6 +112,8 @@ func (c *Client) updateAuthToken() error {
 	response, err := http.Post(c.conf.Api.Tokens, "application/json", body)
 	if err != nil {
 		return err
+	} else if response.StatusCode != 200 {
+		return errors.New("yandex clint doesn't worked (check auth token)")
 	}
 
 	var resp map[string]any

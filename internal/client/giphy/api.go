@@ -26,3 +26,8 @@ func (u *Url) UnmarshalJSON(b []byte) error {
 	*u = Url(data["original"].(map[string]any)["url"].(string))
 	return nil
 }
+
+type SearchGifRequest struct {
+	Phrase  string
+	GifType GifType
+}
