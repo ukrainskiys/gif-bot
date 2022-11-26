@@ -3,7 +3,7 @@ package bot
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	log "github.com/sirupsen/logrus"
-	"github.com/ukrainskiys/gif-bot/internal/client/bot/handler"
+	"github.com/ukrainskiys/gif-bot/internal/bot/handler"
 	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"os"
 )
@@ -36,6 +36,7 @@ func (b *Bot) Run() {
 		msg, err := b.handle.HandleMessage(update.Message)
 		if err != nil {
 			log.Warn(err)
+			continue
 		}
 
 		b.send(msg)
