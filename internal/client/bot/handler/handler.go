@@ -3,11 +3,13 @@ package handler
 import (
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	log "github.com/sirupsen/logrus"
 	"github.com/ukrainskiys/gif-bot/internal/client/giphy"
 	"github.com/ukrainskiys/gif-bot/internal/client/translation"
 	"github.com/ukrainskiys/gif-bot/internal/config"
+	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"github.com/ukrainskiys/gif-bot/pkg/concurent"
-	"log"
+
 	"math/rand"
 )
 
@@ -53,17 +55,21 @@ func (bh *BotHandler) HandleMessage(message *tgbotapi.Message) (tgbotapi.Chattab
 		return getDefaultMessage(message.Chat.ID, gifType), nil
 
 	default:
-		msg, err := bh.getAnimation(message.Chat.ID, message.Text)
-		if errors.Is(err, &GifTypeNotSpecifiedError{}) {
-			msg := tgbotapi.NewMessage(message.Chat.ID, "Нужно указать тип [GIF/STICKER]")
-			msg.ReplyMarkup = tgKeyboard
-			return msg, nil
-		} else if err != nil {
-			return nil, err
+		if len(message.Text) >= 50 {
+			return messageAndErrorNil(message.Chat.ID, constant.VeryLongTextMessage)
 		}
 
-		msg.ReplyMarkup = tgKeyboard
-		return msg, nil
+		msg, err := bh.getAnimation(message.Chat.ID, message.Text)
+		if errors.Is(err, &GifTypeNotSpecifiedError{}) {
+			return messageAndErrorNil(message.Chat.ID, constant.NeedSelectTypeMessage)
+		} else if errors.Is(err, &GifsNotFoundError{}) {
+			return messageAndErrorNil(message.Chat.ID, constant.GifNotFoundMessage)
+		} else if err != nil {
+			return nil, err
+		} else {
+			msg.ReplyMarkup = tgKeyboard
+			return msg, nil
+		}
 	}
 }
 
@@ -74,9 +80,9 @@ func (bh *BotHandler) Close() {
 func getDefaultMessage(chatId int64, gifType giphy.GifType) tgbotapi.MessageConfig {
 	var text string
 	if gifType == giphy.GIF {
-		text = "Введите фразу для подбора гифки ⬇️"
+		text = constant.PhraseForGifMessage
 	} else {
-		text = "Введите фразу для подбора стикера ⬇️"
+		text = constant.PhraseForStickerMessage
 	}
 
 	msg := tgbotapi.NewMessage(chatId, text)
@@ -106,13 +112,17 @@ func (bh *BotHandler) getAnimation(chatId int64, phrase string) (tgbotapi.Animat
 	<-done
 	<-done
 
-	return tgbotapi.NewAnimation(chatId, tgbotapi.FileURL(links.Get(rand.Intn(links.Size())))), nil
+	if links.Size() == 0 {
+		return tgbotapi.AnimationConfig{}, &GifsNotFoundError{}
+	} else {
+		return tgbotapi.NewAnimation(chatId, tgbotapi.FileURL(links.Get(rand.Intn(links.Size())))), nil
+	}
 }
 
 func (bh *BotHandler) searchGifs(done chan struct{}, searchRequest giphy.SearchGifRequest, links *concurent.Slice[string]) {
 	gifs, err := bh.giftApi.GetGifList(searchRequest)
 	if err != nil {
-		log.Panic(err)
+		log.Warn(err)
 		return
 	}
 
@@ -121,4 +131,10 @@ func (bh *BotHandler) searchGifs(done chan struct{}, searchRequest giphy.SearchG
 	}
 
 	done <- struct{}{}
+}
+
+func messageAndErrorNil(chatId int64, text string) (tgbotapi.Chattable, error) {
+	msg := tgbotapi.NewMessage(chatId, text)
+	msg.ReplyMarkup = tgKeyboard
+	return msg, nil
 }

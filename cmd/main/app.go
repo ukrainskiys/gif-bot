@@ -1,10 +1,10 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/ukrainskiys/gif-bot/internal/client/bot"
 	"github.com/ukrainskiys/gif-bot/internal/client/bot/handler"
 	"github.com/ukrainskiys/gif-bot/internal/config"
-	"log"
 )
 
 func main() {

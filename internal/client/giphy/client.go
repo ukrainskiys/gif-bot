@@ -3,6 +3,7 @@ package giphy
 import (
 	"encoding/json"
 	"errors"
+	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +17,7 @@ type Client struct {
 func NewClient(endpoint string) (*Client, error) {
 	client := &Client{
 		endpoint: endpoint,
-		token:    os.Getenv("GIPHY_TOKEN"),
+		token:    os.Getenv(constant.GiphyToken),
 	}
 
 	if err := client.check(); err != nil {
@@ -57,7 +58,7 @@ func (c *Client) check() error {
 	}
 
 	if get.StatusCode != 200 {
-		return errors.New("giphy client doesn't worked (check auth token)")
+		return errors.New(constant.GiphyTokenError)
 	} else {
 		return nil
 	}

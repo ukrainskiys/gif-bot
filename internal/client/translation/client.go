@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ukrainskiys/gif-bot/internal/config"
+	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"net/http"
 	"os"
 	"time"
@@ -50,7 +51,7 @@ func (c *Client) AutoTranslate(text string) (string, error) {
 	case EN:
 		return c.Translate(text, RU)
 	}
-	return "", errors.New("unexpected language")
+	return "", errors.New(constant.UnexpectedLanguageError)
 }
 
 func (c *Client) Translate(text string, lang Language) (string, error) {
@@ -107,13 +108,13 @@ func (c *Client) startSchedulingUpdateAuthToken() {
 }
 
 func (c *Client) updateAuthToken() error {
-	body := bytes.NewBuffer([]byte(fmt.Sprintf("{\"yandexPassportOauthToken\":\"%s\"}", os.Getenv("YANDEX_OAUTH"))))
+	body := bytes.NewBuffer([]byte(fmt.Sprintf("{\"yandexPassportOauthToken\":\"%s\"}", os.Getenv(constant.YandexOauthToken))))
 
 	response, err := http.Post(c.conf.Api.Tokens, "application/json", body)
 	if err != nil {
 		return err
 	} else if response.StatusCode != 200 {
-		return errors.New("yandex clint doesn't worked (check auth token)")
+		return errors.New(constant.YandexTokenError)
 	}
 
 	var resp map[string]any

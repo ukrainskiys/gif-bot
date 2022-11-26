@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"gopkg.in/yaml.v2"
 	"os"
 )
@@ -22,9 +23,7 @@ type Yandex struct {
 }
 
 func NewConfig() (*AppConfig, error) {
-	const fileName = "config.yml"
-
-	bytes, err := os.ReadFile(fileName)
+	bytes, err := os.ReadFile(constant.ConfigName)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +31,7 @@ func NewConfig() (*AppConfig, error) {
 	config := &AppConfig{}
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing YAML config: %s\n", fileName))
+		return nil, errors.New(fmt.Sprintf("Error parsing YAML config: %s\n", constant.ConfigName))
 	}
 
 	return config, nil
