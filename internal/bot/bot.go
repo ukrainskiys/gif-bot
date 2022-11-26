@@ -47,6 +47,7 @@ func (b *Bot) send(c tgbotapi.Chattable) {
 	res, err := b.api.Send(c)
 	if err != nil {
 		log.Warn(err)
+	} else {
+		log.Printf(`POST update Chat.ID=%d Text="%s"`, res.Chat.ID, res.Text)
 	}
-	log.Printf(`POST update Chat.ID=%d Text="%s"`, res.Chat.ID, res.Text)
 }
