@@ -6,6 +6,7 @@ import (
 	"github.com/ukrainskiys/gif-bot/internal/bot/handler"
 	"github.com/ukrainskiys/gif-bot/internal/constant"
 	"os"
+	"time"
 )
 
 type Bot struct {
@@ -27,6 +28,7 @@ func (b *Bot) Run() {
 	updateConfig.Timeout = 0
 
 	for update := range b.api.GetUpdatesChan(updateConfig) {
+		now := time.Now()
 		if update.Message == nil {
 			continue
 		}
@@ -39,15 +41,15 @@ func (b *Bot) Run() {
 			continue
 		}
 
-		b.send(msg)
+		b.send(msg, time.Since(now))
 	}
 }
 
-func (b *Bot) send(c tgbotapi.Chattable) {
+func (b *Bot) send(c tgbotapi.Chattable, duration time.Duration) {
 	res, err := b.api.Send(c)
 	if err != nil {
 		log.Warn(err)
 	} else {
-		log.Printf(`POST update Chat.ID=%d Text="%s"`, res.Chat.ID, res.Text)
+		log.Printf(`POST update Chat.ID=%d Text="%s" [%v]`, res.Chat.ID, res.Text, duration)
 	}
 }
