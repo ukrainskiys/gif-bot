@@ -18,12 +18,12 @@ var (
 )
 
 type Client struct {
-	conf config.Yandex
+	conf config.YandexConfig
 
 	close chan struct{}
 }
 
-func NewClient(conf config.Yandex) (*Client, error) {
+func NewClient(conf config.YandexConfig) (*Client, error) {
 	client := &Client{
 		conf:  conf,
 		close: make(chan struct{}),

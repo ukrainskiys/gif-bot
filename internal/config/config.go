@@ -9,17 +9,24 @@ import (
 )
 
 type AppConfig struct {
-	Giphy  string `yaml:"giphy"`
-	Yandex Yandex `yaml:"yandex"`
+	Giphy        string       `yaml:"giphy"`
+	YandexConfig YandexConfig `yaml:"yandex"`
+	RedisConfig  RedisConfig  `yaml:"redis"`
 }
 
-type Yandex struct {
+type YandexConfig struct {
 	Api struct {
 		Translate string `yaml:"translate"`
 		Detect    string `json:"detect"`
 		Tokens    string `yaml:"tokens"`
 	} `yaml:"api"`
 	FolderId string `yaml:"folder-id"`
+}
+
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
 }
 
 func NewConfig() (*AppConfig, error) {
