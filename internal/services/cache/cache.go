@@ -10,17 +10,22 @@ import (
 )
 
 type Service struct {
+	*UserCache
+
 	client *redis.Client
 }
 
 func NewService(conf config.RedisConfig) (*Service, error) {
-	cl := &Service{redis.NewClient(&redis.Options{
+	client := redis.NewClient(&redis.Options{
 		Addr:     conf.Host + ":" + strconv.Itoa(conf.Port),
 		Password: conf.Password,
 		DB:       0,
-	})}
+	})
 
-	return cl, cl.client.Ping().Err()
+	userCache := NewUserCache()
+	userCache.loadUsers()
+
+	return &Service{userCache, client}, client.Ping().Err()
 }
 
 func (s *Service) SetNewTypeForAccount(chatId int64, gifType giphy.GifType) {

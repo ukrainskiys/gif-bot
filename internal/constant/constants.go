@@ -3,6 +3,8 @@ package constant
 const (
 	ConfigName = "config.yml"
 
+	LayoutCustom = "2006-01-02T15:04:05"
+
 	VeryLongTextMessage     = "Фраза слишком большая! Длинна ее не должна превышать 50 символов."
 	GifNotFoundMessage      = "Поиск по этой фразе не дал результатов:("
 	NeedSelectTypeMessage   = "Нужно указать тип [GIF/STICKER]."

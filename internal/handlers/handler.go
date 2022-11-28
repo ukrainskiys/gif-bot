@@ -24,9 +24,9 @@ var (
 )
 
 type BotHandler struct {
-	giftApi    *giphy.Service
-	translator *translation.Service
-	cacheCl    *cache.Service
+	giftApi      *giphy.Service
+	translator   *translation.Service
+	cacheService *cache.Service
 }
 
 func NewBotHandler(conf *config.AppConfig) (*BotHandler, error) {
@@ -49,10 +49,12 @@ func NewBotHandler(conf *config.AppConfig) (*BotHandler, error) {
 }
 
 func (bh *BotHandler) HandleMessage(message *tgbotapi.Message) (tgbotapi.Chattable, error) {
+	bh.cacheService.UpdateUserCache(message.From)
+
 	switch message.Text {
 	case giphy.GIF.String(), giphy.STICKER.String():
 		gifType := giphy.ParseType(message.Text)
-		bh.cacheCl.SetNewTypeForAccount(message.Chat.ID, gifType)
+		bh.cacheService.SetNewTypeForAccount(message.Chat.ID, gifType)
 		return getDefaultMessage(message.Chat.ID, gifType), nil
 
 	default:
@@ -94,7 +96,7 @@ func getDefaultMessage(chatId int64, gifType giphy.GifType) tgbotapi.MessageConf
 func (bh *BotHandler) getAnimation(chatId int64, phrase string) (tgbotapi.AnimationConfig, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	accountInfo, ok := bh.cacheCl.GetAccountInfo(chatId)
+	accountInfo, ok := bh.cacheService.GetAccountInfo(chatId)
 
 	if !ok {
 		return tgbotapi.AnimationConfig{}, &GifTypeNotSpecifiedError{}
@@ -107,7 +109,7 @@ func (bh *BotHandler) getAnimation(chatId int64, phrase string) (tgbotapi.Animat
 		gif = gifs[idx]
 		gifs = append(gifs[:idx], gifs[idx+1:]...)
 		accountInfo.UpdateGifs(phr, removeRepeats(gifs))
-		bh.cacheCl.Set(chatId, accountInfo)
+		bh.cacheService.Set(chatId, accountInfo)
 	} else {
 		links, phr := bh.getGifLinks(accountInfo, cache.Phrase{FirstLang: phrase})
 
@@ -118,7 +120,7 @@ func (bh *BotHandler) getAnimation(chatId int64, phrase string) (tgbotapi.Animat
 			gif = links.Get(idx)
 			links.Remove(idx)
 			accountInfo.UpdateGifs(phr, removeRepeats(links.Array()))
-			bh.cacheCl.Set(chatId, accountInfo)
+			bh.cacheService.Set(chatId, accountInfo)
 		}
 	}
 
