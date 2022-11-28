@@ -20,8 +20,6 @@ func NewClient(conf config.RedisConfig) (*Cache, error) {
 		DB:       0,
 	})}
 
-	cl.client.Set("test", "123", 0)
-
 	return cl, cl.client.Ping().Err()
 }
 
