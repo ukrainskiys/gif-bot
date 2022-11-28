@@ -9,8 +9,6 @@ import (
 )
 
 func main() {
-	//test()
-
 	now := time.Now()
 
 	conf, err := config.NewConfig()
@@ -25,8 +23,3 @@ func main() {
 	defer handle.Close()
 	telegram.Run()
 }
-
-//func test() {
-//	conf, _ := config.NewConfig()
-//	cacheClient := cache.NewClient(conf.RedisConfig)
-//}
