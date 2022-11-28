@@ -8,4 +8,4 @@ export YANDEX_OAUTH=$YANDEX_OAUTH
 
 docker compose up -d
 
-go build cmd/main/app.go
+go build cmd/app/app.go
