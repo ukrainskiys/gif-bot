@@ -2,7 +2,7 @@ package cache
 
 import (
 	"encoding/json"
-	"github.com/ukrainskiys/gif-bot/internal/client/giphy"
+	"github.com/ukrainskiys/gif-bot/internal/services/giphy"
 	"strings"
 )
 

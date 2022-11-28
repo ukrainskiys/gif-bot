@@ -13,49 +13,49 @@ import (
 )
 
 var (
-	cl     http.Client
+	client http.Client
 	bearer string
 )
 
-type Client struct {
+type Service struct {
 	conf config.YandexConfig
 
 	close chan struct{}
 }
 
-func NewClient(conf config.YandexConfig) (*Client, error) {
-	client := &Client{
+func NewService(conf config.YandexConfig) (*Service, error) {
+	cl := &Service{
 		conf:  conf,
 		close: make(chan struct{}),
 	}
 
-	err := client.updateAuthToken()
+	err := cl.updateAuthToken()
 	if err != nil {
 		return nil, err
 	}
 
-	client.startSchedulingUpdateAuthToken()
+	cl.startSchedulingUpdateAuthToken()
 
-	return client, nil
+	return cl, nil
 }
 
-func (c *Client) AutoTranslate(text string) (string, error) {
-	lang, err := c.DetectLanguage(text)
+func (s *Service) AutoTranslate(text string) (string, error) {
+	lang, err := s.DetectLanguage(text)
 	if err != nil {
 		return "", err
 	}
 
 	switch lang {
 	case RU:
-		return c.Translate(text, EN)
+		return s.Translate(text, EN)
 	case EN:
-		return c.Translate(text, RU)
+		return s.Translate(text, RU)
 	}
 	return "", errors.New(constant.UnexpectedLanguageError)
 }
 
-func (c *Client) Translate(text string, lang Language) (string, error) {
-	translateResp, err := post(newTranslateRequest(c.conf.FolderId, text, lang), c.conf.Api.Translate)
+func (s *Service) Translate(text string, lang Language) (string, error) {
+	translateResp, err := post(newTranslateRequest(s.conf.FolderId, text, lang), s.conf.Api.Translate)
 	if err != nil {
 		return "", err
 	}
@@ -69,8 +69,8 @@ func (c *Client) Translate(text string, lang Language) (string, error) {
 	return translate.Translations[0].Text, nil
 }
 
-func (c *Client) DetectLanguage(text string) (Language, error) {
-	detectResp, err := post(newDetectLanguageRequest(c.conf.FolderId, text), c.conf.Api.Detect)
+func (s *Service) DetectLanguage(text string) (Language, error) {
+	detectResp, err := post(newDetectLanguageRequest(s.conf.FolderId, text), s.conf.Api.Detect)
 	if err != nil {
 		return "", err
 	}
@@ -84,22 +84,22 @@ func (c *Client) DetectLanguage(text string) (Language, error) {
 	return Language(detect.LanguageCode), nil
 }
 
-func (c *Client) Close() {
-	c.close <- struct{}{}
+func (s *Service) Close() {
+	s.close <- struct{}{}
 }
 
-func (c *Client) startSchedulingUpdateAuthToken() {
+func (s *Service) startSchedulingUpdateAuthToken() {
 	ticker := time.NewTicker(time.Hour)
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				err := c.updateAuthToken()
+				err := s.updateAuthToken()
 				if err != nil {
 					ticker.Stop()
 					return
 				}
-			case <-c.close:
+			case <-s.close:
 				ticker.Stop()
 				return
 			}
@@ -107,10 +107,10 @@ func (c *Client) startSchedulingUpdateAuthToken() {
 	}()
 }
 
-func (c *Client) updateAuthToken() error {
+func (s *Service) updateAuthToken() error {
 	body := bytes.NewBuffer([]byte(fmt.Sprintf("{\"yandexPassportOauthToken\":\"%s\"}", os.Getenv(constant.YandexOauthToken))))
 
-	response, err := http.Post(c.conf.Api.Tokens, "application/json", body)
+	response, err := http.Post(s.conf.Api.Tokens, "application/json", body)
 	if err != nil {
 		return err
 	} else if response.StatusCode != 200 {
@@ -136,5 +136,5 @@ func post(request any, endpoint string) (*http.Response, error) {
 	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(body))
 	req.Header.Add("Authorization", "Bearer "+bearer)
 
-	return cl.Do(req)
+	return client.Do(req)
 }

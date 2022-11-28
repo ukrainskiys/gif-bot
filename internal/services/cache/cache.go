@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	"github.com/ukrainskiys/gif-bot/internal/client/giphy"
 	"github.com/ukrainskiys/gif-bot/internal/config"
+	"github.com/ukrainskiys/gif-bot/internal/services/giphy"
 	"strconv"
 )
 
-type Cache struct {
+type Service struct {
 	client *redis.Client
 }
 
-func NewClient(conf config.RedisConfig) (*Cache, error) {
-	cl := &Cache{redis.NewClient(&redis.Options{
+func NewService(conf config.RedisConfig) (*Service, error) {
+	cl := &Service{redis.NewClient(&redis.Options{
 		Addr:     conf.Host + ":" + strconv.Itoa(conf.Port),
 		Password: conf.Password,
 		DB:       0,
@@ -23,18 +23,18 @@ func NewClient(conf config.RedisConfig) (*Cache, error) {
 	return cl, cl.client.Ping().Err()
 }
 
-func (c *Cache) SetNewTypeForAccount(chatId int64, gifType giphy.GifType) {
-	account, ok := c.GetAccountInfo(chatId)
+func (s *Service) SetNewTypeForAccount(chatId int64, gifType giphy.GifType) {
+	account, ok := s.GetAccountInfo(chatId)
 	if ok {
 		account.GifType = gifType
-		c.Set(chatId, account)
+		s.Set(chatId, account)
 	} else {
-		c.Set(chatId, AccountInfo{GifType: gifType, GifsCache: map[string][]string{}})
+		s.Set(chatId, AccountInfo{GifType: gifType, GifsCache: map[string][]string{}})
 	}
 }
 
-func (c *Cache) GetAccountInfo(chatId int64) (AccountInfo, bool) {
-	result, err := c.client.Get(toKey(chatId)).Result()
+func (s *Service) GetAccountInfo(chatId int64) (AccountInfo, bool) {
+	result, err := s.client.Get(toKey(chatId)).Result()
 	if err != nil {
 		return AccountInfo{}, false
 	}
@@ -47,12 +47,12 @@ func (c *Cache) GetAccountInfo(chatId int64) (AccountInfo, bool) {
 	}
 }
 
-func (c *Cache) Set(chatId int64, info AccountInfo) {
+func (s *Service) Set(chatId int64, info AccountInfo) {
 	marshal, err := json.Marshal(info)
 	if err != nil {
 		log.Error(err)
 	}
-	c.client.Set(toKey(chatId), marshal, 0)
+	s.client.Set(toKey(chatId), marshal, 0)
 }
 
 func toKey(chatId int64) string {

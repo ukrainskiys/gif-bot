@@ -2,8 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/ukrainskiys/gif-bot/internal/bot"
-	"github.com/ukrainskiys/gif-bot/internal/bot/handler"
+	"github.com/ukrainskiys/gif-bot/internal/app"
 	"github.com/ukrainskiys/gif-bot/internal/config"
 	"time"
 )
@@ -12,14 +11,16 @@ func main() {
 	now := time.Now()
 
 	conf, err := config.NewConfig()
-	handle, err := handler.NewBotHandler(conf)
-	telegram, err := bot.NewBot(handle)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	telegram, err := app.NewBot(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("Bot started [%v]", time.Since(now))
 
-	defer handle.Close()
 	telegram.Run()
 }

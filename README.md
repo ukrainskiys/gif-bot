@@ -3,6 +3,6 @@
 [@GifGiveBot](https://t.me/GifGiveBot)
 
 #### Example
-![Example](resources/img/example.png)
+![Example](assets/example.png)
 
 #### Supports Russian and English

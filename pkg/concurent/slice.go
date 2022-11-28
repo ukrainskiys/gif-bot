@@ -12,22 +12,22 @@ type SliceInterface[T any] struct {
 
 type Slice[T any] struct {
 	slice []T
-	mx    *sync.RWMutex
+	mx    sync.RWMutex
 }
 
-func NewSlice[T any](capacity int) *Slice[T] {
-	return &Slice[T]{make([]T, capacity), &sync.RWMutex{}}
+func NewSlice[T any]() *Slice[T] {
+	return &Slice[T]{[]T{}, sync.RWMutex{}}
 }
 
 func (s *Slice[T]) Append(element T) {
-	defer s.mx.Unlock()
 	s.mx.Lock()
+	defer s.mx.Unlock()
 	s.slice = append(s.slice, element)
 }
 
 func (s *Slice[T]) Get(idx int) T {
-	defer s.mx.RUnlock()
 	s.mx.RLock()
+	defer s.mx.RUnlock()
 	if len(s.slice) > idx && idx >= 0 {
 		return s.slice[idx]
 	} else {
@@ -37,19 +37,21 @@ func (s *Slice[T]) Get(idx int) T {
 }
 
 func (s *Slice[T]) Remove(idx int) {
-	defer s.mx.Unlock()
 	s.mx.Lock()
+	defer s.mx.Unlock()
 	if len(s.slice) > idx && idx >= 0 {
 		s.slice = append(s.slice[:idx], s.slice[idx+1:]...)
 	}
 }
 
 func (s *Slice[T]) Size() int {
-	defer s.mx.RUnlock()
 	s.mx.RLock()
+	defer s.mx.RUnlock()
 	return len(s.slice)
 }
 
 func (s *Slice[T]) Array() []T {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
 	return s.slice
 }

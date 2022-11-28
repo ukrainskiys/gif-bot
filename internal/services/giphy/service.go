@@ -9,13 +9,13 @@ import (
 	"os"
 )
 
-type Client struct {
+type Service struct {
 	endpoint string
 	token    string
 }
 
-func NewClient(endpoint string) (*Client, error) {
-	client := &Client{
+func NewService(endpoint string) (*Service, error) {
+	client := &Service{
 		endpoint: endpoint,
 		token:    os.Getenv(constant.GiphyToken),
 	}
@@ -27,8 +27,8 @@ func NewClient(endpoint string) (*Client, error) {
 	}
 }
 
-func (c *Client) GetGifList(request SearchGifRequest) ([]Gif, error) {
-	get, err := http.Get(c.buildUrl(request.GifType, request.Phrase).String())
+func (s *Service) GetGifList(request SearchGifRequest) ([]Gif, error) {
+	get, err := http.Get(s.buildUrl(request.GifType, request.Phrase).String())
 	if err != nil {
 		return nil, err
 	}
@@ -41,18 +41,18 @@ func (c *Client) GetGifList(request SearchGifRequest) ([]Gif, error) {
 	}
 }
 
-func (c *Client) buildUrl(typ GifType, phrase string) *url.URL {
-	builder, _ := url.Parse(c.endpoint)
+func (s *Service) buildUrl(typ GifType, phrase string) *url.URL {
+	builder, _ := url.Parse(s.endpoint)
 	builder = builder.JoinPath(typ.toPath(), "search")
 	params := builder.Query()
-	params.Add("api_key", c.token)
+	params.Add("api_key", s.token)
 	params.Add("q", phrase)
 	builder.RawQuery = params.Encode()
 	return builder
 }
 
-func (c *Client) check() error {
-	get, err := http.Get(c.buildUrl(GIF, "hello").String())
+func (s *Service) check() error {
+	get, err := http.Get(s.buildUrl(GIF, "hello").String())
 	if err != nil {
 		return err
 	}

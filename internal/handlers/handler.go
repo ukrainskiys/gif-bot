@@ -1,14 +1,14 @@
-package handler
+package handlers
 
 import (
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	log "github.com/sirupsen/logrus"
-	"github.com/ukrainskiys/gif-bot/internal/cache"
-	"github.com/ukrainskiys/gif-bot/internal/client/giphy"
-	"github.com/ukrainskiys/gif-bot/internal/client/translation"
 	"github.com/ukrainskiys/gif-bot/internal/config"
 	"github.com/ukrainskiys/gif-bot/internal/constant"
+	"github.com/ukrainskiys/gif-bot/internal/services/cache"
+	"github.com/ukrainskiys/gif-bot/internal/services/giphy"
+	"github.com/ukrainskiys/gif-bot/internal/services/translation"
 	"github.com/ukrainskiys/gif-bot/pkg/concurent"
 	"math/rand"
 	"time"
@@ -24,23 +24,23 @@ var (
 )
 
 type BotHandler struct {
-	giftApi    *giphy.Client
-	translator *translation.Client
-	cacheCl    *cache.Cache
+	giftApi    *giphy.Service
+	translator *translation.Service
+	cacheCl    *cache.Service
 }
 
 func NewBotHandler(conf *config.AppConfig) (*BotHandler, error) {
-	translator, err := translation.NewClient(conf.YandexConfig)
+	translator, err := translation.NewService(conf.YandexConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	giftApi, err := giphy.NewClient(conf.Giphy)
+	giftApi, err := giphy.NewService(conf.Giphy)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheClient, err := cache.NewClient(conf.RedisConfig)
+	cacheClient, err := cache.NewService(conf.RedisConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (bh *BotHandler) getAnimation(chatId int64, phrase string) (tgbotapi.Animat
 
 func (bh *BotHandler) getGifLinks(info cache.AccountInfo, phrase cache.Phrase) (*concurent.Slice[string], cache.Phrase) {
 	done := make(chan struct{})
-	links := concurent.NewSlice[string](0)
+	links := concurent.NewSlice[string]()
 
 	go bh.searchGifs(done, giphy.SearchGifRequest{Phrase: phrase.FirstLang, GifType: info.GifType}, links)
 
