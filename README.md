@@ -4,3 +4,5 @@
 
 #### Example
 ![Example](resources/img/example.png)
+
+#### Supports Russian and English
